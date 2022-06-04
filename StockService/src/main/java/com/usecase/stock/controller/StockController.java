@@ -1,18 +1,13 @@
 package com.usecase.stock.controller;
 
-import java.util.Arrays;
-import java.util.List;
+import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+import com.usecase.stock.entity.CompanyDetails;
 import com.usecase.stock.entity.Stock;
 import com.usecase.stock.service.StockService;
 
@@ -33,7 +29,9 @@ public class StockController {
 	@Autowired
 	RestTemplate restTemplate;
 	
-	@Value("${companyServiceURL}")
+//	@Autowired
+//    private Environment env;
+	
 	public static String companyServiceURL;
 
 	/*
@@ -48,23 +46,27 @@ public class StockController {
 		//checking whether company exists
 		HttpMethod method = HttpMethod.GET;
 		HttpEntity<?> requestEntity = new HttpEntity<>(stock);
-		ParameterizedTypeReference<Boolean> responseType = new ParameterizedTypeReference<Boolean>() {
+		ParameterizedTypeReference<CompanyDetails> responseType = new ParameterizedTypeReference<CompanyDetails>() {
 		};
-		ResponseEntity<Boolean> res = restTemplate.exchange(companyServiceURL+companyCode, method, requestEntity,responseType);
-		stock.setCompanyCode(companyCode);
-		return stockService.addStock(stock);
+		companyServiceURL = "http://COMPANY-SERVICE/api/v1.0/market/company/info/";
+		System.out.println(companyServiceURL);
+		ResponseEntity<CompanyDetails> res = restTemplate.exchange(companyServiceURL+companyCode, method, requestEntity,responseType);
+		if(res.getBody().getCompanyCode() != null) {
+			stock.setCompanyCode(res.getBody().getCompanyCode());
+			return stockService.addStock(stock);
+		}
+		return null;
 	}
 	
+	@Transactional
 	@PostMapping("/delete/{companyCode}")
-	public Stock deleteStock(@PathVariable String companyCode,@RequestBody Stock stock) {
-		//checking whether company exists
-		HttpMethod method = HttpMethod.GET;
-		HttpEntity<?> requestEntity = new HttpEntity<>(stock);
-		ParameterizedTypeReference<Boolean> responseType = new ParameterizedTypeReference<Boolean>() {
-		};
-		ResponseEntity<Boolean> res = restTemplate.exchange(companyServiceURL+companyCode, method, requestEntity,responseType);
-		stock.setCompanyCode(companyCode);
-		return stockService.deleteStock(stock);
+	public Long deleteStock(@PathVariable String companyCode) {
+		return stockService.deleteStock(companyCode);
+	}
+	
+	@GetMapping("/getStockInfo/{companyCode}")
+	public Stock getStockInfo(@PathVariable String companyCode) {
+		return stockService.getStockInfoByCompanyCode(companyCode);
 	}
 	
 //	@PostMapping("/search")

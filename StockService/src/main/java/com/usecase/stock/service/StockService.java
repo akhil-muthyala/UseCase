@@ -21,9 +21,12 @@ public class StockService {
 		return stockRepository.save(stock);
 	}
 
-	public Stock deleteStock(Stock stock) {
-		// TODO Auto-generated method stub
-		return null;
+	public Long deleteStock(String companyCode) {
+		return stockRepository.deleteByCompanyCode(companyCode);
+	}
+
+	public Stock getStockInfoByCompanyCode(String companyCode) {
+		return stockRepository.findByCompanyCode(companyCode);
 	}
 	
 //	@Cacheable(key="#pnrNo",value="bookflight-pnrkey-store")
