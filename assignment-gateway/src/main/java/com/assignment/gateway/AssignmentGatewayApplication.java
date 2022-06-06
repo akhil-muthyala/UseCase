@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 
 @SpringBootApplication
 @EnableZuulProxy
+@ComponentScan(basePackages = "com.assignment.*")
 public class AssignmentGatewayApplication {
 
 	public static void main(String[] args) {
